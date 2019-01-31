@@ -26,7 +26,14 @@ function do_help() {
   echo "usage: $PROG start <path> [<size-mb>]"
   echo "usage: $PROG stop <path>"
   echo "usage: $PROG status <path>"
+  echo "usage: $PROG run <path> [<size-mb>]"
   echo "usage: $PROG help"
+}
+
+function do_run_cleanup() {
+  echo
+  echo_h1 "Stop ramdisk at \"$RAMPATH\""
+  drv_unmount "$RAMPATH"
 }
 
 function main() {
@@ -79,6 +86,25 @@ function main() {
       else
         echo "unmounted"
       fi
+      ;;
+
+    run)
+      if drv_is_mounted "$RAMPATH"; then
+        echo_h1 "Cannot run \"$RAMPATH\"in foreground  - already started"
+        exit 1
+      fi
+
+      echo_h1 "Start ramdisk at \"$RAMPATH\" (${RAMSIZE}mb)"
+      [ ! -d "$RAMPATH" ] && mkdir -p "$RAMPATH"
+      drv_mount "$RAMPATH" "$RAMSIZE"
+
+      CLEANUP_RAMPATH="$RAMPATH"
+      trap do_run_cleanup EXIT INT TERM
+
+      echo
+      echo_h1 "To shutdown, press Ctrl-C."
+      while true; do sleep 10000; done;
+
       ;;
 
     -h|--help|help)
