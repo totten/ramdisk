@@ -31,6 +31,10 @@ function do_help() {
 }
 
 function do_run_cleanup() {
+  if [ -n "$DO_RUN_CLEANUP_STARTED" ]; then
+    return
+  fi
+  DO_RUN_CLEANUP_STARTED=1
   echo
   echo_h1 "Stop ramdisk at \"$RAMPATH\""
   drv_unmount "$RAMPATH"
