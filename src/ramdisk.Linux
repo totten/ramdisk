@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+## untested...
+
+## usage: drv_mount <mountPoint> <ramDiskSize>
+function drv_mount() {
+  echo_comment "Execute: sudo mount -t tmpfs -o \"size=${2}m\" tmpfs \"$1\""
+  sudo mount -t tmpfs -o "size=${2}m" tmpfs "$1"
+}
+
+## usage: drv_mount <mountPoint>
+function drv_unmount() {
+  echo_comment "Execute: sudo umount \"$1\""
+  sudo umount "$1"
+}
+
+## usage: drv_is_mounted <mountPoint>
+function drv_is_mounted() {
+  if mount | grep -q " on $1" ; then
+    return 1
+  else
+    return 0
+  fi
+}

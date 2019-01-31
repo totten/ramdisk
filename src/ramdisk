@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -e
+
+################################################################################
+function echo_h1() {
+  echo "[[ $@ ]]"
+}
+
+function echo_comment() {
+  echo "> $@"
+}
+
+function echo_error() {
+  echo "Error: $@" >&2
+}
+
+function fatal() {
+  echo
+  echo_error "$@"
+  exit 1
+}
+
+################################################################################
+function do_help() {
+  PROG=$(basename $0)
+  echo "usage: $PROG start <path> [<size-mb>]"
+  echo "usage: $PROG stop <path>"
+  echo "usage: $PROG status <path>"
+  echo "usage: $PROG help"
+}
+
+function main() {
+  local uname=$(uname)
+  local driver="ramdisk.${uname}"
+  local driverfile=$(which "$driver")
+  if [ -f "$driverfile" ]; then
+    source "$driverfile"
+  else
+    fatal "Failed to locate driver \"$driver\""
+  fi
+
+  local ACTION="$1"
+  local RAMPATH="$2"
+  local RAMSIZE="$3"
+
+  if [ -z "$ACTION" ]; then
+    do_help
+    fatal "No action specified"
+  fi
+
+  if [ -z "$RAMPATH" ]; then
+    do_help
+    fatal "No path specified"
+  fi
+
+  if [ -z "$RAMSIZE" ]; then
+    RAMSIZE=250
+  fi
+
+  case "$ACTION" in
+    start)
+      if drv_is_mounted "$RAMPATH"; then
+        echo_h1 "Already started \"$RAMPATH\""
+        exit
+      fi
+      echo_h1 "Start ramdisk at \"$RAMPATH\" (${RAMSIZE}mb)"
+      [ ! -d "$RAMPATH" ] && mkdir -p "$RAMPATH"
+      drv_mount "$RAMPATH" "$RAMSIZE"
+      ;;
+
+    stop)
+      echo_h1 "Stop ramdisk at \"$RAMPATH\""
+      drv_unmount "$RAMPATH"
+      ;;
+
+    status)
+      if drv_is_mounted "$RAMPATH"; then
+        echo "mounted"
+      else
+        echo "unmounted"
+      fi
+      ;;
+
+    -h|--help|help)
+      do_help
+      ;;
+    *)
+      do_help
+      fatal "Unrecognized action \"$ACTION\""
+      ;;
+  esac
+}
+
+################################################################################
+main "$@"

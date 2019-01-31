@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+## usage: drv_mount <mountPoint> <ramDiskSize>
+function drv_mount() {
+  local rampath="$1"
+  local ramsize="$2"
+  local sectors=$(( $ramsize * 1024 * 1024 / 512 ))
+  echo_comment "Create ramdevice (${ramsize}mb)"
+  hdid -nomount "ram://$sectors" | while read device ; do
+    echo_comment "Format device ($device)"
+    newfs_hfs -v "ramdisk-$ramsize" "$device"
+    echo_comment "Mount ($rampath)"
+    mount -o noatime -t hfs "$device" "$rampath"
+  done
+}
+
+## usage: drv_unmount <mountPoint>
+function drv_unmount() {
+  diskutil eject "$1"
+}
+
+## usage: drv_is_mounted <mountPoint>
+function drv_is_mounted() {
+  if mount | grep -q " on $1 " ; then
+    return 0
+  else
+    return 1
+  fi
+}
