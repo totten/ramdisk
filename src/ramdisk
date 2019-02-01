@@ -80,6 +80,10 @@ function main() {
       ;;
 
     stop)
+      if ! drv_is_mounted "$RAMPATH"; then
+        echo_h1 "Already stopped \"$RAMPATH\""
+        exit
+      fi
       echo_h1 "Stop ramdisk at \"$RAMPATH\""
       drv_unmount "$RAMPATH"
       ;;
