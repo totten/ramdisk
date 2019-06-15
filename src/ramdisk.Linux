@@ -17,8 +17,8 @@ function drv_unmount() {
 ## usage: drv_is_mounted <mountPoint>
 function drv_is_mounted() {
   if mount | grep -q " on $1" ; then
-    return 1
-  else
     return 0
+  else
+    return 1
   fi
 }
